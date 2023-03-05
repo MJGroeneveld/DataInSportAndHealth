@@ -18,9 +18,10 @@ data_running_raw <- read.csv("data_running_raw.csv")
 
 #Filtering important variables
 data_running_selected <- data_running %>%
-  select("id", "start_date", "start_time", "end_time", "running_HR_max", "running_HR_mean", 
-         "running_HR_25p", "running_HR_75p", "summary_duration",
-         "running_HR_zeros", "training_RPE", "training_sRPE", "daily_wellness_sleep", 
+  select("id", "start_date", "start_time", "end_time", "summary_duration", "summary_distance", 
+         "summary_speed", "summary_calories", "time", "running_HR_max", "running_HR_mean", 
+         "running_HR_25p", "running_HR_75p", 
+         "training_duration", "training_RPE", "training_sRPE", "daily_wellness_sleep", 
          "daily_wellness_fatigue", "daily_wellness_stress", "daily_wellness_soreness", 
          "daily_wellness_mood", "daily_readiness_train", "daily_HRrest")
 
@@ -85,27 +86,48 @@ ggplot(data_running_selected, aes(x=summary_duration, y=duration)) +
 # than summary_duration, and points below the line represent cases where summary_duration 
 # is greater than difference_time.
 
-# --> do want to delete those points?
+ggplot(data_running_selected, aes(x=summary_duration, y=training_duration*60)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1) +
+  labs(x = "Summary Duration", y = "Training duration") +
+  theme_bw()
+
+ggplot(data_running_selected, aes(x=duration, y=training_duration*60)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1) +
+  labs(x = "Difference Time", y = "Training duration") +
+  theme_bw()
+
+# So we want to delete the ones which are not the same 
+data_running_selected <- data_running_selected[data_running_selected$summary_duration==data_running_selected$duration,]
+
+# We hebben dan nog meer 98 obs. & met onderstaande checken we of het nu wel overeenkomt. 
+ggplot(data_running_selected, aes(x=summary_duration, y=duration)) + 
+  geom_point() + 
+  geom_abline(intercept = 0, slope = 1) +
+  labs(x = "Summary Duration", y = "Difference Time") +
+  theme_bw()
 
 #Calculating statistics
 
 #-------------------------------------------------------------------------------
 
 ##FEATURE ENGINEERING##
-# heart rate reserve (HRR) 
-data_running_trimp<- data_running_selected %>% 
-  dplyr::mutate(HRR = (running_HR_mean - daily_HRrest)/(running_HR_max - daily_HRrest), 
-                # weighting_factor = ifelse(HRR < 0.5, 1, 
-                #                           ifelse(HRR < 0.6, 1.1, 
-                #                                  ifelse(HRR < 0.7, 1.2, 
-                #                                         ifelse(HRR < 0.8, 1.3, 
-                #                                                ifelse(HRR < 0.9, 1.4, 1.5))))), 
-                TRIMP <- HRR * duration * 0.64)
-
+# TRIMP & SHRZ
+data_running <- data_running_selected %>% 
+  dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
+                SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest))
 
 #-------------------------------------------------------------------------------
 
 ##DATA MODELLING##
+
+#We remove ID as there is nothing to learn from this feature (it would just add some noise).
+data_running_prepared <- subset(data_running, select = -id)
+
+write.csv(data_running_prepared, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", row.names = FALSE)
+
+
 
 #-------------------------------------------------------------------------------
 
