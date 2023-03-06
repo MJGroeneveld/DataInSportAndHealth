@@ -5,9 +5,10 @@
 setwd("/Users/melaniegroeneveld/Documents/Data in Sport and Health")
 
 ##Loading R packages
-library("dplyr")
-library("ggplot2")
-library("naniar")
+library(dplyr)
+library(ggplot2)
+library(naniar)
+library(corrplot)
 
 source("parameters.R")
 source("functions.R")
@@ -16,22 +17,41 @@ source("functions.R")
 data_running <- read.csv("data_running.csv")
 data_running_raw <- read.csv("data_running_raw.csv")
 
-#Filtering important variables
-data_running_selected <- data_running %>%
-  select("id", "start_date", "start_time", "end_time", "summary_duration", "summary_distance", 
-         "summary_speed", "summary_calories", "time", "running_HR_max", "running_HR_mean", 
-         "running_HR_25p", "running_HR_75p", 
-         "training_duration", "training_RPE", "training_sRPE", "daily_wellness_sleep", 
-         "daily_wellness_fatigue", "daily_wellness_stress", "daily_wellness_soreness", 
-         "daily_wellness_mood", "daily_readiness_train", "daily_HRrest")
-
-##Data quality check
-
 #Checking missing values
 gg_miss_var(data_running_selected, show_pct = TRUE) 
 
-#Deleting missing values
-data_running_selected <- na.omit(data_running_selected)
+data_running <- data_running %>% 
+  dplyr::select("id", "start_date", "start_time", "end_time", "summary_duration", "summary_distance", 
+                "summary_speed", "summary_calories", "time", "running_HR_max", "running_HR_mean", 
+                "running_HR_25p", "running_HR_75p", 
+                "training_duration", "training_RPE", "training_sRPE", "daily_wellness_sleep", 
+                "daily_wellness_fatigue", "daily_wellness_stress", "daily_wellness_soreness", 
+                "daily_wellness_mood", "daily_readiness_train", "daily_HRrest") %>% 
+  dplyr::mutate(start_time = setDateTime(dateTimeColumn = start_time,
+                                         Table = TRUE), 
+                end_time = setDateTime(dateTimeColumn = end_time, 
+                                       Table = TRUE),
+                start_date = as.POSIXct(start_date),
+                id = as.numeric(id), 
+                summary_duration = as.numeric(summary_duration),
+                time = as.numeric(time), 
+                running_HR_25p = as.numeric(running_HR_25p),
+                running_HR_75p = as.numeric(running_HR_75p),
+                training_duration = as.numeric(training_duration), 
+                training_RPE = as.numeric(training_RPE), 
+                training_sRPE = as.numeric(training_sRPE), 
+                daily_HRrest = as.numeric(daily_HRrest)
+                ) %>% 
+  na.omit() 
+  
+data_running_corr <- data_running %>% 
+  dplyr::select(-c(id, start_date, start_time, end_time)) 
+
+M = cor(data_running_corr)
+corrplot(M, method = 'color', order = 'alphabet')
+
+##Data quality check
+
 
 #Duplicates
 unique_observations <- unique(data_running_selected$id)
@@ -114,7 +134,7 @@ ggplot(data_running_selected, aes(x=summary_duration, y=duration)) +
 
 ##FEATURE ENGINEERING##
 # TRIMP & SHRZ
-data_running <- data_running_selected %>% 
+data_running_selected <- data_running %>% 
   dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
                 SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest))
 
@@ -126,7 +146,6 @@ data_running <- data_running_selected %>%
 data_running_prepared <- subset(data_running, select = -id)
 
 write.csv(data_running_prepared, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", row.names = FALSE)
-
 
 
 #-------------------------------------------------------------------------------
