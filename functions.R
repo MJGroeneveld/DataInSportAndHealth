@@ -24,6 +24,3 @@ edwards_SHRZ <- function(duration, HRmax, HRmean, HRrest) {
   SHRZ <- (time_zone1 * 1) + (time_zone2 * 2) + (time_zone3 * 3) + (time_zone4 * 4) + (time_zone5 * 5)
   return(SHRZ)
 }
-
-# datetime <- strptime(datetime_str, format = "%HH %MM %OS", tz = "UTC")
-# datetime <- format(datetime, format = "%H:%M:%OS", usetz = FALSE)

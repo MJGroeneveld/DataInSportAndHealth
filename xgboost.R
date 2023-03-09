@@ -1,6 +1,7 @@
 # Load the necessary packages
 library(xgboost)
 library(caret)
+library(shapper)
 
 # Load the data
 df_prepared <- read.csv("/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", stringsAsFactors = TRUE)
@@ -25,15 +26,6 @@ grid_tune <- expand.grid(
   colsample_bytree = c(0.4, 0.6, 0.8, 1.0), 
   min_child_weight = c(1, 2, 3), 
   subsample = c(0.5, 0.75, 1.0))
-
-# params <- list(
-#   objective = "reg:squarederror",
-#   num_class = 3,
-#   max_depth = 4,
-#   eta = 0.3,
-#   subsample = 0.7,
-#   colsample_bytree = 0.7
-# ) 
 
 # Define the training control parameters for cross-validation
 ctrl <- trainControl(method = "cv", number = 5, verboseIter = TRUE)
@@ -60,3 +52,11 @@ print(paste0("RMSE: ", rmse))
 print(paste0("mse: ", mse))
 print(paste0("mae: ", mae))
 
+mat <- xgb_model.importance (feature_names = colnames(new_tr),model = xgb_model)
+xgb.plot.importance (importance_matrix = mat[1:20]) 
+
+#shap_values <- shapper::shap(X_test, xgb_model)
+#shapper::plot_shap(shap_values, agaricus.train$data, plot_type = "dot")
+
+https://www.hackerearth.com/practice/machine-learning/machine-learning-algorithms/beginners-tutorial-on-xgboost-parameter-tuning-r/tutorial/
+https://www.projectpro.io/recipes/apply-xgboost-for-classification-r 
