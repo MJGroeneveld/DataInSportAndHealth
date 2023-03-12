@@ -35,8 +35,8 @@ shadow <- as_shadow(data_running_selected)
 #MCAR, MAR, or MNAR??
 vis_miss(data_running_selected, cluster = TRUE)
 
-#Deleting missing values
-data_running_selected <- na.omit(data_running_selected)
+#Deleting observations without values for RPE and HR
+data_running_selected <- data_running_selected %>% drop_na(training_RPE, running_HR_mean)
 
 #Duplicates
 unique_observations <- unique(data_running_selected$id)
