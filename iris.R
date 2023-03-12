@@ -8,11 +8,13 @@ install.packages("dplyr")
 install.packages("ggplot2")
 install.packages("naniar")
 install.packages("reshape2")
+install.packages("tidyr")
 
 library("dplyr")
 library("ggplot2")
 library("naniar")
 library("reshape2")
+library("tidyr")
 
 #Loading data
 data_running <- read.csv("data_running.csv")
