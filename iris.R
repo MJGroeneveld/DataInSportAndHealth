@@ -32,11 +32,14 @@ ggplot(missing, aes(x = variable, y = pct_miss)) + geom_col() + theme(axis.text.
 other_missing <- data_running_selected %>% miss_scan_count(search = list("N/A", "n/a", "na", " ", "missing", "E"))
 shadow <- as_shadow(data_running_selected)
 
-#MCAR, MAR, or MNAR??
-vis_miss(data_running_selected, cluster = TRUE)
+#Visualizing missing values
+vis_miss(data_running_selected)
 
 #Deleting observations without values for RPE and HR
 data_running_selected <- data_running_selected %>% drop_na(training_RPE, running_HR_mean)
+
+#Checking missing values
+vis_miss(data_running_selected)
 
 #Duplicates
 unique_observations <- unique(data_running_selected$id)
