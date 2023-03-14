@@ -9,6 +9,7 @@ library(dplyr)
 library(ggplot2)
 library(naniar)
 library(corrplot)
+library(fastDummies)
 
 source("parameters.R")
 source("functions.R")
@@ -17,41 +18,51 @@ source("functions.R")
 data_running <- read.csv("data_running.csv")
 data_running_raw <- read.csv("data_running_raw.csv")
 
-#Checking missing values
-gg_miss_var(data_running_selected, show_pct = TRUE) 
+#Checking data types 
+str(data_running)
 
-data_running <- data_running %>% 
-  dplyr::select("id", "start_date", "start_time", "end_time", "summary_duration", "summary_distance", 
-                "summary_speed", "summary_calories", "time", "running_HR_max", "running_HR_mean", 
-                "running_HR_25p", "running_HR_75p", 
-                "training_duration", "training_RPE", "training_sRPE", "daily_wellness_sleep", 
+#Checking missing values
+gg_miss_var(data_running, show_pct = TRUE) 
+sum(is.na(data_running))
+
+#Feature selection based on description, convert in correct type & delete NA values 
+data_running_selected <- data_running %>% 
+  dplyr::select("id", "start_date", "start_time", "end_time", "summary_duration", 
+                "summary_distance", "summary_speed", "time", "running_speed_max", 
+                "running_speed_mean", "running_speed_25p", "running_speed_75p", 
+                "running_speed_90p", "running_speed_zeros", "running_HR_max", 
+                "running_HR_mean", "running_HR_25p", "running_HR_75p","running_HR_zeros", 
+                "training_daypart", "training_session", "training_duration", 
+                "training_RPE", "training_sRPE", "daily_wellness_sleep", 
                 "daily_wellness_fatigue", "daily_wellness_stress", "daily_wellness_soreness", 
                 "daily_wellness_mood", "daily_readiness_train", "daily_HRrest") %>% 
   dplyr::mutate(start_time = setDateTime(dateTimeColumn = start_time,
                                          Table = TRUE), 
                 end_time = setDateTime(dateTimeColumn = end_time, 
                                        Table = TRUE),
-                start_date = as.POSIXct(start_date),
-                id = as.numeric(id), 
-                summary_duration = as.numeric(summary_duration),
-                time = as.numeric(time), 
-                running_HR_25p = as.numeric(running_HR_25p),
-                running_HR_75p = as.numeric(running_HR_75p),
-                training_duration = as.numeric(training_duration), 
-                training_RPE = as.numeric(training_RPE), 
-                training_sRPE = as.numeric(training_sRPE), 
-                daily_HRrest = as.numeric(daily_HRrest)
-                ) %>% 
-  na.omit() 
-  
-data_running_corr <- data_running %>% 
+                start_date = as.POSIXct(start_date)) %>% 
+  dplyr::mutate_if(is.integer, as.numeric) %>% 
+  na.omit() #deze moet denk hier nog niet. Want denk dat we niet alles willen verwijderen? 
+
+#Dummy encoding 
+data_running_dummy <- data_running_selected %>% 
+  dplyr::mutate(training_daypart = ifelse(is.na(training_daypart), 'None', training_daypart),
+                training_session = ifelse(is.na(training_session), 'None', training_session)) %>% 
+  fastDummies::dummy_cols(select_columns = c('training_daypart', 'training_session'), 
+                          remove_most_frequent_dummy = T, 
+                          remove_selected_columns = T) %>% 
+  dplyr::mutate_if(is.integer, as.numeric)
+
+#For our research question it doesn't make sense to look at training_daypart and training_session 
+data_running_selected <- data_running_selected %>% 
+  dplyr::select(-c('running_HR_zeros', 'training_daypart', 'training_session'))
+
+#Correlation plot 
+data_running_corr <- data_running_selected %>% 
   dplyr::select(-c(id, start_date, start_time, end_time)) 
 
 M = cor(data_running_corr)
 corrplot(M, method = 'color', order = 'alphabet')
-
-##Data quality check
-
 
 #Duplicates
 unique_observations <- unique(data_running_selected$id)
@@ -134,7 +145,7 @@ ggplot(data_running_selected, aes(x=summary_duration, y=duration)) +
 
 ##FEATURE ENGINEERING##
 # TRIMP & SHRZ
-data_running_selected <- data_running %>% 
+data_running_selected <- data_running_selected %>% 
   dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
                 SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest))
 
@@ -143,7 +154,7 @@ data_running_selected <- data_running %>%
 ##DATA MODELLING##
 
 #We remove ID as there is nothing to learn from this feature (it would just add some noise).
-data_running_prepared <- subset(data_running, select = -id)
+data_running_prepared <- subset(data_running_selected, select = -id)
 
 write.csv(data_running_prepared, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", row.names = FALSE)
 
