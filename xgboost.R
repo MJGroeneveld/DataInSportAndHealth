@@ -33,6 +33,7 @@ validation <- training[-trainIndex,]
 y_train <- train$training_RPE
 y_val <- validation$training_RPE
 y_test <- testing$training_RPE
+
 ################################### Baseline ###################################
 # train the baseline model on the training dataset
 xgb_base <- caret::train(
@@ -306,6 +307,7 @@ xgb_model <- caret::train(
 # Evaluate the performance of the model
 test_pred <- predict(xgb_model, testing)
 val_pred <- predict(xgb_model, validation)
+train_pred <- predict(xgb_model, train)
 postResample(pred=val_pred, obs=validation$training_RPE)
 postResample(pred=test_pred, obs=testing$training_RPE)
 
@@ -313,7 +315,7 @@ postResample(pred=test_pred, obs=testing$training_RPE)
 ################################## Importance ##################################
 importance <- varImp(xgb_model) #scale = FALSE avoids the normalization step 
 plot(importance)
-
+plot(importance, top = 15)
 
 ######################## Plotting actual vs predicted ########################
 options(repr.plot.width=8, repr.plot.height=4)
@@ -329,9 +331,16 @@ ggplot(my_data,aes(predicted, observed)) + geom_point(color = "darkred", alpha =
 
 
 
+######################## Statistic ########################
+test_result <- wilcox.test(val_pred_baseline, val_pred, paired = TRUE)
 
-
-
+t_test_result <- t.test(train_pred, test_pred)
+# check if the p-value is less than 0.05
+if (t_test_result$p.value < 0.05) {
+  cat("The train to test difference in R-squared is significant at the 0.05 level.\n")
+} else {
+  cat("The train to test difference in R-squared is not significant at the 0.05 level.\n")
+}
 
 
 ############ Less important features eruit halen ########
