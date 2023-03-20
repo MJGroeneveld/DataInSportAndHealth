@@ -89,6 +89,12 @@ data_running_engineer <- data_running_time %>%
                 training_RPE = as.factor(training_RPE), 
                 wellness = (rowMeans(data_running_dummy[ ,16:20])))
 
+data_running_selected_engineer <- data_running_selected %>% 
+  dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
+                SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest), 
+                training_RPE = as.factor(training_RPE), 
+                wellness = (rowMeans(data_running_selected[ ,20:24])))
+
 #-------------------------------------------------------------------------------
 ##DATA EXPLORATION##
 
@@ -180,7 +186,7 @@ ggplot(data_running_engineer, aes(x=summary_duration, y=duration)) +
 ##DATA MODELLING## 
 
 write.csv(data_running_engineer, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared_withHR.csv", row.names = FALSE)
-
+write.csv(data_running_selected_engineer, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared2.csv", row.names = FALSE)
 # Run the rest in xgboost.R
 
 #-------------------------------------------------------------------------------

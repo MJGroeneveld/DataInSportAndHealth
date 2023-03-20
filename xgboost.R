@@ -6,13 +6,27 @@ library(ggplot2)
 
 # Load the data
 #df_prepared <- read.csv("/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", stringsAsFactors = TRUE)
+
+# Met HR features: 
 df_prepared <- read.csv("/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared_withHR.csv", stringsAsFactors = TRUE)
+
+# Met alleen HR, wellness and readiness 
+# df_prepared <- read.csv("/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared2.csv", stringsAsFactors = TRUE)
+
 
 # We remove id, start_date, start_time, end_time, start_datetime, end_datetime as 
 # there is nothing to learn from this feature (it would just add some noise).
 df_prepared <- df_prepared %>% 
   dplyr::select(-c(id, start_date, start_time, end_time, start_datetime, end_datetime)) %>% 
   dplyr::mutate_if(is.integer, as.numeric)
+
+# df_prepared <- df_prepared %>% 
+#   dplyr::select(-c(id, start_date, start_time, end_time, summary_duration, summary_distance, summary_speed, 
+#                    time, running_speed_max, running_speed_mean, training_daypart, training_session, training_duration, 
+#                    training_sRPE, daily_wellness_sleep, daily_wellness_fatigue, daily_wellness_stress, 
+#                    daily_wellness_soreness, daily_wellness_mood, TRIMP, SHRZ)) %>% 
+#   dplyr::mutate_if(is.integer, as.numeric)
+
 
 # Now we have 30 variables and all of them are numeric values 
 
