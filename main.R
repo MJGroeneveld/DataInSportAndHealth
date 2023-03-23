@@ -17,7 +17,8 @@ source("functions.R")
 
 #Loading data
 data_running <- read.csv("data_running.csv")
-data_running_raw <- read.csv("data_running_raw.csv")
+data_running_raw <- read.csv("data_running_raw.csv")  # We don't use this, 
+# because it doesn't give more information
 
 #Checking data types 
 str(data_running)
@@ -87,13 +88,12 @@ data_running_engineer <- data_running_time %>%
   dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
                 SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest), 
                 training_RPE = as.factor(training_RPE), 
-                wellness = (rowMeans(data_running_dummy[ ,16:20])))
-
-data_running_selected_engineer <- data_running_selected %>% 
-  dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
-                SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest), 
-                training_RPE = as.factor(training_RPE), 
-                wellness = (rowMeans(data_running_selected[ ,20:24])))
+                wellness = rowMeans(data_running_dummy[, c("daily_wellness_sleep", 
+                                                            "daily_wellness_fatigue", 
+                                                            "daily_wellness_stress", 
+                                                            "daily_wellness_soreness", 
+                                                            "daily_wellness_mood")]), 
+                HRR = running_HR_max - daily_HRrest)
 
 #-------------------------------------------------------------------------------
 ##DATA EXPLORATION##
@@ -181,13 +181,20 @@ ggplot(data_running_engineer, aes(x=summary_duration, y=duration)) +
   theme_bw()
 
 
-#Calculating statistics
+############ delete variables who are not relevant to question ############### 
+# We also remove id, start_date, start_time, end_time, start_datetime, end_datetime as 
+# there is nothing to learn from this feature (it would just add some noise).
+
+data_running_end <- data_running_engineer %>% 
+  dplyr::select(-c(id, start_date, start_time, end_time, start_datetime, end_datetime, 
+                   summary_duration, summary_distance, summary_speed, time, running_speed_max, 
+                   running_speed_mean, training_duration, training_sRPE, duration)) %>% 
+  dplyr::mutate_if(is.integer, as.numeric)
+
+# Now we have 30 variables and all of them are numeric values 
 
 ##DATA MODELLING## 
-
-write.csv(data_running_engineer, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared_withHR.csv", row.names = FALSE)
-write.csv(data_running_selected_engineer, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared2.csv", row.names = FALSE)
-# Run the rest in xgboost.R
+write.csv(data_running_end, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", row.names = FALSE)
 
 #-------------------------------------------------------------------------------
 

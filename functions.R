@@ -8,9 +8,10 @@ setDateTime <- function(dateTimeColumn,
 }
 
 edwards_TRIMP <- function(duration, HRmax, HRmean, HRrest) {
-  HRR <- (HRmean - HRrest) / (HRmax - HRrest)
-  k <- ifelse(HRmax < 160, 1.67, 1.92)  # Set k value based on athlete's age (en gender)
-  TRIMP <- duration * HRR * 0.64 * exp(k * HRR)
+  TRIMP <- duration * HRmean 
+  # HRR <- (HRmean - HRrest) / (HRmax - HRrest)
+  # k <- ifelse(HRmax < 160, 1.67, 1.92)  # Set k value based on athlete's age (en gender)
+  # TRIMP <- duration * HRR * 0.64 * exp(k * HRR)
   return(TRIMP)
 }
 
