@@ -7,7 +7,7 @@ setDateTime <- function(dateTimeColumn,
   return(datetime)
 }
 
-edwards_TRIMP <- function(duration, HRmax, HRmean, HRrest) {
+TRIMP <- function(duration, HRmax, HRmean, HRrest) {
   TRIMP <- duration * HRmean 
   # HRR <- (HRmean - HRrest) / (HRmax - HRrest)
   # k <- ifelse(HRmax < 160, 1.67, 1.92)  # Set k value based on athlete's age (en gender)
@@ -15,7 +15,7 @@ edwards_TRIMP <- function(duration, HRmax, HRmean, HRrest) {
   return(TRIMP)
 }
 
-edwards_SHRZ <- function(duration, HRmax, HRmean, HRrest) {
+SHRZ <- function(duration, HRmax, HRmean, HRrest) {
   # Calculate time spent in each zone
   time_zone1 <- duration * (0.5 * (HRmax - HRrest) / (HRmean - HRrest))
   time_zone2 <- duration * (0.1 * (HRmax - HRrest) / (HRmean - HRrest))

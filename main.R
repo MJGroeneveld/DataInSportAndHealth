@@ -1,7 +1,6 @@
 ##DATA PREPARATION##
 
-#Setting working directory
-#setwd("C:/Users/irisk/Documents/Uni/2022-2023/Data in Sport and Health/Research data")
+#Setting working directoryEn de
 setwd("/Users/melaniegroeneveld/Documents/Data in Sport and Health")
 
 ##Loading R packages
@@ -85,8 +84,8 @@ data_running_time <- data_running_dummy %>%
 
 # TRIMP & SHRZ
 data_running_engineer <- data_running_time %>% 
-  dplyr::mutate(TRIMP = edwards_TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
-                SHRZ  = edwards_SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest), 
+  dplyr::mutate(TRIMP = TRIMP(summary_duration/60, running_HR_max,running_HR_mean, daily_HRrest), 
+                SHRZ  = SHRZ(summary_duration/60, running_HR_max, running_HR_mean, daily_HRrest), 
                 training_RPE = as.factor(training_RPE), 
                 wellness = rowMeans(data_running_dummy[, c("daily_wellness_sleep", 
                                                             "daily_wellness_fatigue", 
