@@ -193,6 +193,14 @@ data_running_end <- data_running_engineer %>%
 
 # Now we have 30 variables and all of them are numeric values 
 
+#Correlation plot 
+data_running_corr <- data_running_end %>% 
+  dplyr::select(-c(training_RPE)) 
+
+M = cor(data_running_corr)
+corrplot(M, method = 'color', order = 'alphabet', tl.cex = 0.5)
+
+
 ##DATA MODELLING## 
 write.csv(data_running_end, file = "/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", row.names = FALSE)
 

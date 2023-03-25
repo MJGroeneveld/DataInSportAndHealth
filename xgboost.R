@@ -9,12 +9,12 @@ library(ROSE)
 df_prepared <- read.csv("/Users/melaniegroeneveld/Documents/Data in Sport and Health/DataInSportAndHealth/df_prepared.csv", stringsAsFactors = TRUE)
 
 ########## Nu runnen zonder information about daypart & session ##########
-df_prepared <- df_prepared %>%
-  dplyr::select(-c(training_daypart_evening, training_daypart_morning, 
-                   training_session_Ext.interval, training_session_Ext.tempo, 
-                   training_session_Fartlek, training_session_Int.endurance, 
-                   training_session_Int.interval, training_session_Int.tempo)) %>%
-  dplyr::mutate_if(is.integer, as.numeric)
+# df_prepared <- df_prepared %>%
+#   dplyr::select(-c(training_daypart_evening, training_daypart_morning, 
+#                    training_session_Ext.interval, training_session_Ext.tempo, 
+#                    training_session_Fartlek, training_session_Int.endurance, 
+#                    training_session_Int.interval, training_session_Int.tempo)) %>%
+#   dplyr::mutate_if(is.integer, as.numeric)
 
 theme_ppt <- theme(plot.background = element_rect(fill = "#37474f"), 
                    axis.title = element_text(color = "white"), 
@@ -84,49 +84,49 @@ xgb_tuned <- caret::train(training_RPE ~ .,
 
 ################################## L2 regularization #################################
 # L2 regularization on weights. It is used to avoid overfitting.
-grid_tune2 <- expand.grid(
-  nrounds = xgb_tuned$bestTune$nrounds, 
-  eta = xgb_tuned$bestTune$eta,
-  gamma = xgb_tuned$bestTune$gamma,
-  max_depth = xgb_tuned$bestTune$max_depth,
-  min_child_weight = xgb_tuned$bestTune$min_child_weight,
-  subsample = xgb_tuned$bestTune$subsample,
-  colsample_bytree = xgb_tuned$bestTune$colsample_bytree
-)
+# grid_tune2 <- expand.grid(
+#   nrounds = xgb_tuned$bestTune$nrounds, 
+#   eta = xgb_tuned$bestTune$eta,
+#   gamma = xgb_tuned$bestTune$gamma,
+#   max_depth = xgb_tuned$bestTune$max_depth,
+#   min_child_weight = xgb_tuned$bestTune$min_child_weight,
+#   subsample = xgb_tuned$bestTune$subsample,
+#   colsample_bytree = xgb_tuned$bestTune$colsample_bytree
+# )
+# 
+# xgb_tuned_L2 <- caret::train(training_RPE ~ ., 
+#                              data = train, 
+#                              method = "xgbTree",
+#                              trControl = tune_control, 
+#                              tuneGrid = grid_tune2,
+#                              verbose = TRUE,
+#                              metric = "RMSE", 
+#                              lambda = 0.5, 
+#                              alpha = 0)
 
-xgb_tuned_L2 <- caret::train(training_RPE ~ ., 
-                             data = train, 
-                             method = "xgbTree",
-                             trControl = tune_control, 
-                             tuneGrid = grid_tune2,
-                             verbose = TRUE,
-                             metric = "RMSE", 
-                             lambda = 0.5, 
-                             alpha = 0)
-
-############################# Check for overfitting #############################
-train_pred_tunedL2 <- predict(xgb_tuned_L2, train)
-val_pred_tunedL2 <- predict(xgb_tuned_L2, validation)
-
-postResample(pred=val_pred_tunedL2, obs=validation$training_RPE)
-
-################### Evaluate best models on the test dataset ###################
-# Make predictions on the test set
-pred <- predict(xgb_tuned_L2, testing)
-
-# Evaluate the performance of the model
-postResample(pred=pred, obs=testing$training_RPE)
-rmse <- caret::RMSE(y_test, pred)
-mse <- mean((y_test - pred)^2)
-mae <- caret::MAE(y_test, pred)
-print(paste0("RMSE: ", rmse))
-print(paste0("mse: ", mse))
-print(paste0("mae: ", mae))
-
-
-################################## Importance ##################################
-importance <- varImp(xgb_final) #scale = FALSE avoids the normalization step 
-plot(importance)
+# ############################# Check for overfitting #############################
+# train_pred_tunedL2 <- predict(xgb_tuned_L2, train)
+# val_pred_tunedL2 <- predict(xgb_tuned_L2, validation)
+# 
+# postResample(pred=val_pred_tunedL2, obs=validation$training_RPE)
+# 
+# ################### Evaluate best models on the test dataset ###################
+# # Make predictions on the test set
+# pred <- predict(xgb_tuned_L2, testing)
+# 
+# # Evaluate the performance of the model
+# postResample(pred=pred, obs=testing$training_RPE)
+# rmse <- caret::RMSE(y_test, pred)
+# mse <- mean((y_test - pred)^2)
+# mae <- caret::MAE(y_test, pred)
+# print(paste0("RMSE: ", rmse))
+# print(paste0("mse: ", mse))
+# print(paste0("mae: ", mae))
+# 
+# 
+# ################################## Importance ##################################
+# importance <- varImp(xgb_final) #scale = FALSE avoids the normalization step 
+# plot(importance)
 
 ##################################### STEP 1 #####################################
 nrounds <- 1000
@@ -167,9 +167,10 @@ postResample(pred=val_pred_tuned, obs=validation$training_RPE)
 tune_grid2 <- expand.grid(
   nrounds = seq(from = 50, to = nrounds, by = 50),
   eta = xgb_tune$bestTune$eta,
-  max_depth = ifelse(xgb_tune$bestTune$max_depth == 2,
-                     c(xgb_tune$bestTune$max_depth:4),
-                     xgb_tune$bestTune$max_depth - 1:xgb_tune$bestTune$max_depth + 1),
+  max_depth = xgb_tune$bestTune$max_depth,
+  # max_depth = ifelse(xgb_tune$bestTune$max_depth == 2,
+  #                    c(xgb_tune$bestTune$max_depth:4),
+  #                    xgb_tune$bestTune$max_depth - 1:xgb_tune$bestTune$max_depth + 1),
   gamma = 0,
   colsample_bytree = 1,
   min_child_weight = c(1, 2, 3),
@@ -198,9 +199,9 @@ tune_grid3 <- expand.grid(
   eta = xgb_tune$bestTune$eta,
   max_depth = xgb_tune2$bestTune$max_depth,
   gamma = 0,
-  colsample_bytree = c(0.4, 0.6, 0.8, 1.0),
+  colsample_bytree = c(0.2, 0.4, 0.6, 0.8, 1.0),
   min_child_weight = xgb_tune2$bestTune$min_child_weight,
-  subsample = c(0.5, 0.75, 1.0)
+  subsample = c(0.25, 0.5, 0.75, 1.0)
 )
 
 xgb_tune3 <- caret::train(
@@ -248,8 +249,8 @@ postResample(pred=val_pred_tuned4, obs=validation$training_RPE)
 
 ##################################### STEP 5 #####################################
 tune_grid5 <- expand.grid(
-  nrounds = seq(from = 100, to = 10000, by = 100),
-  eta = c(0.001, 0.0015, 0.01),
+  nrounds = seq(from = 50, to = nrounds, by = 50),
+  eta = c(0.001, 0.01, 0.02, 0.1, 0.3),
   max_depth = xgb_tune2$bestTune$max_depth,
   gamma = xgb_tune4$bestTune$gamma,
   colsample_bytree = xgb_tune3$bestTune$colsample_bytree,
@@ -271,8 +272,8 @@ ggplot(xgb_tune5) +
        theme_ppt
 xgb_tune5$bestTune
 
-val_pred_tuned4 <- predict(xgb_tune4, validation)
-postResample(pred=val_pred_tuned4, obs=validation$training_RPE)
+val_pred_tuned5 <- predict(xgb_tune5, validation)
+postResample(pred=val_pred_tuned5, obs=validation$training_RPE)
 
 ##################################### Final #####################################
 final_grid <- expand.grid(
@@ -315,20 +316,21 @@ my_data = as.data.frame(cbind(predicted = test_pred,
 ggplot(my_data,aes(predicted, observed)) + geom_point(color = "darkred", alpha = 0.5) + 
   geom_smooth(method=lm)+ ggtitle('Linear Regression ') + ggtitle("Extreme Gradient Boosting: Prediction vs Test Data") +
   xlab("Predicted ") + ylab("Observed") + 
-  theme(plot.title = element_text(color="white",size=16,hjust = 0.5),
+  theme(plot.title = element_text(color="black",size=16,hjust = 0.5),
         axis.text.y = element_text(size=12), axis.text.x = element_text(size=12,hjust=.5),
-        axis.title.x = element_text(size=14), axis.title.y = element_text(size=14)) + 
-  theme_ppt
+        axis.title.x = element_text(size=14), axis.title.y = element_text(size=14)) 
 
 
 ######################## Statistic ########################
-# Calculate R-squared & RMSE values for the training & test datasets & perform a paired
-train_r2 <- caret::R2(y_train, train_pred)
-train_rmse <- caret::RMSE(y_train, train_pred)
-test_r2 <- caret::R2(y_test, test_pred)
-test_rmse <- caret::RMSE(y_test, test_pred)
+# Calculate the correlation between each predictor and the target variable training_RPE: 
+correlations <- cor(train[, -which(names(train) == 'training_RPE')], train$training_RPE)
+order_correlations <- correlations[order(abs(correlations[,1]), decreasing = TRUE),]
 
-t_test_result <- t.test(train_rmse, test_rmse, paired = TRUE)
+# Calculate the absolute error per datapoint: 
+errors <- abs(test_pred - testing$training_RPE)
+mean_error <- mean(errors)
+sd_error <- sd(errors)
+t_test_result <- t.test(errors, mu=0)
 
 # check if the p-value is less than 0.05
 if (t_test_result$p.value < 0.05) {

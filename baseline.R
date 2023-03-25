@@ -23,25 +23,25 @@ y_train <- train$training_RPE
 y_val <- validation$training_RPE
 y_test <- testing$training_RPE
 
-train <- train %>% 
+train_dummy <- train %>% 
   mutate(dummy = sample(c(0, 1), nrow(train), replace = TRUE))
 
-validation <- validation %>% 
+validation_dummy <- validation %>% 
   mutate(dummy = sample(c(0, 1), nrow(validation), replace = TRUE))
 
-testing <- testing %>% 
+testing_dummy <- testing %>% 
   mutate(dummy = sample(c(0, 1), nrow(testing), replace = TRUE))
 
 xgb_base <- caret::train(
   training_RPE ~ dummy, 
-  data = train, 
+  data = train_dummy, 
   method = "xgbTree",
   verbose = FALSE #no training log 
 )
 
-val_pred_base <- predict(xgb_base, validation)
-test_pred_base <- predict(xgb_base, testing)
-train_pred_base <- predict(xgb_base, train)
-postResample(pred=val_pred_base, obs= validation$training_RPE)
-postResample(pred=test_pred_base, obs= testing$training_RPE)
-postResample(pred=train_pred_base, obs= train$training_RPE)
+val_pred_base <- predict(xgb_base, validation_dummy)
+test_pred_base <- predict(xgb_base, testing_dummy)
+train_pred_base <- predict(xgb_base, train_dummy)
+postResample(pred=val_pred_base, obs= validation_dummy$training_RPE)
+postResample(pred=test_pred_base, obs= testing_dummy$training_RPE)
+postResample(pred=train_pred_base, obs= train_dummy$training_RPE)
